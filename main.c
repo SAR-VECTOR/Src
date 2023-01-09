@@ -197,6 +197,10 @@ int main(void)
   OLED1_Font_8x6_printf(1, 15, "Запуск программы");
   OLED1_Font_16x12_printf(3, 25, NORMAL, NORMAL, "VECTOR");
   OLED1_Font_16x12_printf(6, 25, NORMAL, NORMAL, VERSION);
+
+
+
+
   HAL_Delay(5000); // подержали секунду приветствие
   OLED1_Clear();   //  и очистили экран
 
@@ -211,6 +215,10 @@ int main(void)
   RTC_DateTypeDef s_Date = {0};
   RTC_AlarmTypeDef s_Alarm = {0};
   
+  //DataReceiveFromFRAM_SPI2 (u_TransmitData.u8_ArrayData, sizeof (g_s_DataFromSensor), 0x5A);
+
+
+
 
   /* USER CODE END 2 */
 
@@ -234,71 +242,39 @@ int main(void)
 
 
   // Проверяем, прерывалось ли питание
-  if ( SUPPLY_VOLTAGE_WAS_INTERRUPTED == WhatWasStateOfSupplyVoltage () )
-  {
+  // if ( POWER_SUPPLY_WAS_OK == WhatWasStateOfSupplyVoltage () )
+  // {
     
     // Если питание прерывалось, то устанавливаем время
+
+    hrtc.Instance = RTC;
     
-    s_Time.Hours = 10;
-    s_Time.Minutes = 10;
-    s_Time.Seconds = 0;
-    s_Time.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-    s_Time.StoreOperation = RTC_STOREOPERATION_RESET;
-    if (HAL_RTC_SetTime(&hrtc, &s_Time, RTC_FORMAT_BIN) != HAL_OK)
-    {
-      Error_Handler();
-    }
-    s_Date.WeekDay = RTC_WEEKDAY_SATURDAY;
-    s_Date.Month = RTC_MONTH_DECEMBER;
-    s_Date.Date = 17;
-    s_Date.Year = 22;
+    // s_Time.Hours = 10;
+    // s_Time.Minutes = 10;
+    // s_Time.Seconds = 0;
+    // s_Time.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    // s_Time.StoreOperation = RTC_STOREOPERATION_RESET;
+    // if (HAL_RTC_SetTime(&hrtc, &s_Time, RTC_FORMAT_BIN) != HAL_OK)
+    // {
+    //   Error_Handler();
+    // }
+    // s_Date.WeekDay = RTC_WEEKDAY_SATURDAY;
+    // s_Date.Month = RTC_MONTH_DECEMBER;
+    // s_Date.Date = 17;
+    // s_Date.Year = 22;
 
-    if (HAL_RTC_SetDate(&hrtc, &s_Date, RTC_FORMAT_BIN) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /** Enable the Alarm A
-    */
-    s_Alarm.AlarmTime.Hours = 10;
-    s_Alarm.AlarmTime.Minutes = 10;
-    s_Alarm.AlarmTime.Seconds = 45;
-    s_Alarm.AlarmTime.SubSeconds = 0;
-    s_Alarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-    s_Alarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-    s_Alarm.AlarmMask = RTC_ALARMMASK_MINUTES;
-    // s_Alarm.AlarmMask = RTC_ALARMMASK_NONE;
-    s_Alarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-    s_Alarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    s_Alarm.AlarmDateWeekDay = 17;
-    s_Alarm.Alarm = RTC_ALARM_A;
-    if (HAL_RTC_SetAlarm_IT(&hrtc, &s_Alarm, RTC_FORMAT_BIN) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    s_Alarm.AlarmTime.Hours = 10;
-    s_Alarm.AlarmTime.Minutes = 10;
-    s_Alarm.AlarmTime.Seconds = 45;
-    s_Alarm.AlarmTime.SubSeconds = 0;
-    s_Alarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-    s_Alarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
-    s_Alarm.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY|RTC_ALARMMASK_HOURS|RTC_ALARMMASK_MINUTES;
-    // s_Alarm.AlarmMask = RTC_ALARMMASK_MINUTES;
-    // s_Alarm.AlarmMask = RTC_ALARMMASK_NONE;
-    s_Alarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
-    s_Alarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
-    s_Alarm.AlarmDateWeekDay = 17;
-    s_Alarm.Alarm = RTC_ALARM_A;
-    if (HAL_RTC_SetAlarm_IT(&hrtc, &s_Alarm, RTC_FORMAT_BIN) != HAL_OK)
-    {
-      Error_Handler();
-    }
+    // if (HAL_RTC_SetDate(&hrtc, &s_Date, RTC_FORMAT_BIN) != HAL_OK)
+    // {
+    //   Error_Handler();
+    // }
 
 
+    // DataTransmitToFRAM_SPI2 (u_TransmitData.u8_ArrayData, sizeof (g_s_DataFromSensor), 0x5A);
 
 
-  }
+    WakingUpInNextMinuteAtRightSecond (45); // Просыпаться будем каждую 45-ю секунду
+
+  // }
 
 
 
@@ -338,7 +314,7 @@ int main(void)
       HAL_RTC_GetTime(&hrtc, &s_Time, RTC_FORMAT_BIN);
     }
 
-
+    
     // // выводим побитное представление статуса устройства
     // OLED1_Font_8x6_printf(6, 0, PRINTF_BINARY_PATTERN_INT16, PRINTF_BYTE_TO_BINARY_INT16(PWR->CSR));
 
@@ -569,7 +545,7 @@ int main(void)
 
         //*! Выводим результаты чтения данных датчика --------------------------------------------------------------------------------------------
         
-        # ifdef INFO_FROM_SENSOR_OLED  // #######################################################################################################
+        # ifdef _DEBUG_OLED_ENABLE  // #######################################################################################################
         
           OLED1_Font_8x6_printf(8, 100, "%u", u16_MeasureCounter++); // кол-во полученных пакетов данных от датчика
           OLED1_Font_8x6_printf(1, 1, "%u %u %u %u %u", g_s_DataFromSensor.u16_DeviceStatus,
@@ -796,22 +772,69 @@ static void MX_RTC_Init(void)
   }
 
   /* USER CODE BEGIN Check_RTC_BKUP */
-  //*! ———————————————————— Дополнения №1 по RTC ————————————————————————————————————————
+  //*! ———————————————————— Дополнения по RTC ————————————————————————————————————————
 
   // Проверяем, прерывалось ли питание
   if ( POWER_SUPPLY_WAS_OK == WhatWasStateOfSupplyVoltage () ) // если питание не прерывалось, то...
   {
-    // ...отставляем запущенными RTC-прерывания и тактирование часов, и...
+    // ...отставляем запущенными RTC-прерывания и тактирование часов и...
     HAL_RTC_MspInit(&hrtc);
 
-    // ...сбрасываем флаг будильника "А", чтобы будильник мог сработать в следующий раз, и...
+    // Сбрасываем флаг будильника "А", чтобы будильник мог сработать в следующий раз
     __HAL_RTC_ALARM_CLEAR_FLAG(&hrtc, RTC_FLAG_ALRAF);
 
-    // ...выходим без дальнейшей инициализации часов
+    // ...выходим без ненужной дальнейшей инициализации часов
     return;
-  }  
+  }
+  else
+  { // если питание только что включили, устанавливаем время и дату "от балды" 
+    
+    // устанавливаем время
+    sTime.Hours = 0;
+    sTime.Minutes = 0;
+    sTime.Seconds = 1;
+    sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK)
+    {
+      Error_Handler();
+    }
 
-  //* Подобранные мною значения делителей для работы от внутреннего RC-генератора (37 кГц)
+    // устанавливаем дату
+    sDate.WeekDay = RTC_WEEKDAY_MONDAY;
+    sDate.Month = RTC_MONTH_JANUARY;
+    sDate.Date = 1;
+    sDate.Year = 22;
+    if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    // Ставим будильник Alarm A "от балды" и разрешаем прерывание от него
+    sAlarm.AlarmTime.Hours = 0;
+    sAlarm.AlarmTime.Minutes = 0;
+    sAlarm.AlarmTime.Seconds = 0;
+    sAlarm.AlarmTime.SubSeconds = 0;
+    sAlarm.AlarmTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+    sAlarm.AlarmTime.StoreOperation = RTC_STOREOPERATION_RESET;
+    sAlarm.AlarmMask = RTC_ALARMMASK_NONE;
+    sAlarm.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_ALL;
+    sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
+    sAlarm.AlarmDateWeekDay = 1;
+    sAlarm.Alarm = RTC_ALARM_A;
+    if (HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BIN) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    // Запуск RTC прерываний и тактирования часов
+    HAL_RTC_MspInit(&hrtc);
+
+    return;
+
+  }
+
+  //! Подобранные мною значения делителей для работы от внутреннего RC-генератора (37 кГц)
   // hrtc.Init.AsynchPrediv = 124;
   // hrtc.Init.SynchPrediv = 318;
   // if (HAL_RTC_Init(&hrtc) != HAL_OK)
@@ -820,16 +843,14 @@ static void MX_RTC_Init(void)
   // }
 
   
-
-
-  //*! ———————————————————— Дополнения №1 по RTC ————————————————————————————————————————
+  //*! ———————————————————— Дополнения по RTC ————————————————————————————————————————
 
   /* USER CODE END Check_RTC_BKUP */
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 0;
-  sTime.Minutes = 0;
+  sTime.Hours = 10;
+  sTime.Minutes = 10;
   sTime.Seconds = 0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -865,9 +886,8 @@ static void MX_RTC_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN RTC_Init 2 */
-  //*! ———————————————————— Дополнения №2 по RTC ————————————————————————————————————————
 
-
+  //*! ———————————————————— Дополнения по RTC ————————————————————————————————————————
 
   //! Закомментировать строку: 
   //!     s_Time->SubSeconds = (uint32_t)((hrtc->Instance->SSR) & RTC_SSR_SS);
@@ -875,12 +895,8 @@ static void MX_RTC_Init(void)
   //!  c:\Users\SAR\STM32Cube\Repository\STM32Cube_FW_L1_V1.10.3\Drivers\STM32L1xx_HAL_Driver\Src\
   //!  это исправление бага
 
-  // Запуск RTC прерываний и тактирования часов
-  HAL_RTC_MspInit(&hrtc);
 
-
-
-  //*! ———————————————————— Дополнения №2 по RTC ————————————————————————————————————————
+  //*! ———————————————————— Дополнения по RTC ————————————————————————————————————————
   /* USER CODE END RTC_Init 2 */
 
 }
@@ -1221,6 +1237,67 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
+/*-------------------------------------------------------------------------
+*
+* ASSERT
+*
+* ПРОВЕРИТЬ ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ
+*
+* Args:   ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ
+*
+* Notes:  ЛОГИЧЕСКОЕ ВЫРАЖЕНИЕ МОЖЕТ ВКЛЮЧАТЬ УКАЗАТЕЛИ.
+*
+* МАКРОКОМАНДА ASSERT ВЫЧИСЛЯЕТ ЗНАЧЕНИЕ СВОЕГО АРГУМЕНТА И ПРОВЕРЯЕТ
+* ПОЛУЧИВШИЙСЯ РЕЗУЛЬТАТ.
+*
+* ЕСЛИ РЕЗУЛЬТАТ РАВЕН 0, ТО ASSERT ПЕЧАТАЕТ ДИАГНОСТИЧЕСКОЕ
+* СООБЩЕНИЕ ОБ ОШИБКЕ И ЗАТЕМ ПРЕРЫВАЕТ ВЫПОЛНЕНИЕ МИКРОПРОГРАММЫ.
+*
+* ЕСЛИ РЕЗУЛЬТАТ НЕ РАВЕН 0, ТО НИЧЕГО НЕ ДЕЛАЕТСЯ.
+*
+* МАКРОКОМАНДА ASSERT "РАБОТАЕТ" ТОЛЬКО В ОТЛАДОЧНОЙ ВЕРСИИ МИКРОПРОГРАММЫ.
+*
+* В РАБОЧЕЙ ВЕРСИИ МИКРОПРОГРАММЫ МАКРОКОМАНДЫ ASSERT НЕ ВЫЧИСЛЯЮТ ЗНАЧЕНИЕ
+* ВЫРАЖЕНИЯ, НЕ ПЕЧАТАЮТ ДИАГНОСТИЧЕСКИЕ СООБЩЕНИЯ И НЕ ПРЕРЫВАЮТ
+* ВЫПОЛНЕНИЕ МИКРОПРОГРАММЫ. Т.Е. ЭТИХ МАКРОКОМАНД КАК БЫ НЕТ В ПРОГРАММЕ,
+* ХОТЯ В ТЕКСТАХ ИСХОДНОГО КОДА МИКРОПРОГРАММЫ ОНИ ПРОДОЛЖАЮТ
+* ПРИСУТСТВОВАТЬ. БОЛЕЕ ТОГО, В РАБОЧЕЙ ВЕРСИИ МИКРОПРОГРАММЫ КОМПИЛЯТОР
+* ВООБЩЕ НЕ ГЕНЕРИРУЕТ КОД, РЕАЛИЗУЮЩИЙ МАКРОКОМАНДУ ASSERT.
+*
+* Для включения макрокоманды следует определить переменную окружения _DEBUG
+*
+*/
+
+
+/* Внутри функции должно быть выражение того, что ДОЛЖНО БЫТЬ!!!!!! */
+
+#if defined _DEBUG_ASSERT // константа определена в файле HW_Globals.h
+  void DebugReport (char* pcc_FileName, uint16_t u16_LineNo)
+  {
+    // Очистка строк для подсказок
+    OLED1_ClearOneRow(7);
+    OLED1_ClearOneRow(8);
+
+    // НАПЕЧАТАТЬ ДИАГНОСТИЧЕСКОЕ СООБЩЕНИЕ ОБ ОШИБКЕ
+    // Если строка подсказки не умещается в одну строку, то разбиваем на две строки
+    if (strlen(pcc_FileName) > 21)
+    {
+      OLED1_Font_8x6_printf(7, 1, &pcc_FileName[(strlen(pcc_FileName) - 21)]);
+      OLED1_Font_8x6_printf(8, 10, "строка %u", u16_LineNo);
+    }
+    else // если строка-подсказка короткая, то выводим только одну строку
+    {
+      OLED1_Font_8x6_printf(7, 1, pcc_FileName);
+      OLED1_Font_8x6_printf(8, 10, "строка %u", u16_LineNo);
+    }
+
+    Error_Handler();
+
+  }       
+#endif
+
+
+
 #ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
@@ -1232,6 +1309,26 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
+
+      // Очистка строк для подсказок
+    OLED1_ClearOneRow(7);
+    OLED1_ClearOneRow(8);
+
+    // НАПЕЧАТАТЬ ДИАГНОСТИЧЕСКОЕ СООБЩЕНИЕ ОБ ОШИБКЕ
+    // Если строка подсказки не умещается в одну строку, то разбиваем на две строки
+    if (strlen(file) > 21)
+    {
+      OLED1_Font_8x6_printf(7, 1, &file[(strlen(file) - 21)]);
+      OLED1_Font_8x6_printf(8, 10, "строка %u", line);
+    }
+    else // если строка-подсказка короткая, то выводим только одну строку
+    {
+      OLED1_Font_8x6_printf(7, 1, file);
+      OLED1_Font_8x6_printf(8, 10, "строка %u", line);
+    }
+
+    Error_Handler();
+
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
